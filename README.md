@@ -1,4 +1,4 @@
-## Alpaca SafetyMonitor Simulator
+## Alpaca SafetyMonitor Bridge
 
 Node.js simulator for an ASCOM Alpaca SafetyMonitor with MQTT bridge, REST control, and UDP discovery. Designed to be used by Alpaca clients (e.g., N.I.N.A., ASCOM Remote), while also exposing the safety state via MQTT for home automation and monitoring.
 
