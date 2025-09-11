@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alpaca SafetyMonitor Bridge</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <header class="container">
+      <h1>Alpaca SafetyMonitor Bridge</h1>
+      <div id="online" class="badge">offline</div>
+    </header>
+
+    <main class="container grid">
+      <section class="card">
+        <h2>Status</h2>
+        <div class="kv"><span>Version</span><code id="version">-</code></div>
+        <div class="kv"><span>Uptime</span><code id="uptime">-</code></div>
+        <div class="kv"><span>Is Safe</span><code id="isSafe">-</code></div>
+        <div class="kv"><span>Health</span><code id="health">-</code></div>
+        <div class="kv"><span>Reason</span><code id="reason">-</code></div>
+        <div class="kv"><span>Last Change</span><code id="lastChange">-</code></div>
+        <div class="kv"><span>Alpaca Client</span><code id="client">-</code></div>
+      </section>
+
+      <section class="card">
+        <h2>Controls</h2>
+        <div class="row">
+          <button id="btnSafe" class="btn success">Set SAFE</button>
+          <button id="btnUnsafe" class="btn danger">Set UNSAFE</button>
+        </div>
+        <div class="row">
+          <label for="healthSel">Health:</label>
+          <select id="healthSel">
+            <option value="ok">ok</option>
+            <option value="degraded">degraded</option>
+            <option value="error">error</option>
+          </select>
+          <button id="btnHealth" class="btn">Set</button>
+        </div>
+      </section>
+
+      <section class="card col-span-2">
+        <h2>Live Log</h2>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <footer class="container muted">
+      <span>Device:</span>
+      <code id="device">-</code>
+      <span>Topic Base:</span>
+      <code id="topic">-</code>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>
+
+

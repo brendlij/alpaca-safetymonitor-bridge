@@ -1,0 +1,29 @@
+:root{--bg:#0b0d10;--fg:#e6e9ef;--muted:#98a2b3;--card:#0f1318;--border:#1b2430;--accent:#7c5cff;--ok:#22c55e;--warn:#f59e0b;--err:#ef4444}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif}
+.container{max-width:980px;margin:0 auto;padding:16px}
+header.container{display:flex;align-items:center;gap:12px}
+h1{font-size:20px;margin:0}
+.badge{padding:4px 8px;border-radius:999px;background:#333;color:#ddd;font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.06em}
+.badge.online{background:color-mix(in oklab, var(--ok) 25%, black)}
+.badge.offline{background:color-mix(in oklab, var(--err) 25%, black)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.col-span-2{grid-column:span 2}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--border)}
+.kv:last-child{border-bottom:0}
+.row{display:flex;gap:8px;align-items:center;margin:8px 0}
+label{color:var(--muted)}
+select{background:#0b0f14;color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.btn{appearance:none;border:1px solid var(--border);background:#10151c;color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer;transition:.15s ease box-shadow,.15s ease transform}
+.btn:hover{box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.btn:active{transform:translateY(1px)}
+.btn.success{border-color:color-mix(in oklab, var(--ok) 40%, var(--border));background:color-mix(in oklab, var(--ok) 15%, #10151c)}
+.btn.danger{border-color:color-mix(in oklab, var(--err) 40%, var(--border));background:color-mix(in oklab, var(--err) 15%, #10151c)}
+.log{background:#0a0e13;border:1px solid var(--border);border-radius:8px;padding:12px;min-height:180px;max-height:300px;overflow:auto}
+.muted{color:var(--muted)}
+code{background:#0b0f14;border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+@media (max-width:800px){.grid{grid-template-columns:1fr}.col-span-2{grid-column:span 1}}
+
+

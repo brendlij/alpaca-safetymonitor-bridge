@@ -130,6 +130,9 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Static frontend (served at /)
+app.use(express.static("public"));
+
 // Alpaca (Management + /api/…)
 app.use(createAlpacaRouter(state));
 
