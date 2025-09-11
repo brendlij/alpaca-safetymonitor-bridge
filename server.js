@@ -1,10 +1,9 @@
-// server.js - Alpaca SafetyMonitor Sim (vollständig ConformU-kompatibel)
+// server.js - Alpaca SafetyMonitor Sim (mit MQTT Status + Health + Heartbeat)
 const dgram = require("dgram");
 const express = require("express");
 const cors = require("cors");
 const mqtt = require("mqtt");
 require("dotenv").config();
-
 
 // === Config ===
 const HTTP_PORT = Number(process.env.ALPACA_PORT || 11111);
@@ -18,50 +17,17 @@ const MQTT_PUB   = process.env.MQTT_PUB || "alpaca/safetymonitor/safe/state";
 const MQTT_USER  = process.env.MQTT_USER || undefined;
 const MQTT_PASS  = process.env.MQTT_PASS || undefined;
 
-// --- State helper ---
-const setSafe = (safe, reason = "manual") => {
-    const prev = !isRaining;
-    isRaining = !Boolean(safe);
-    const now = !isRaining;
-    if (prev !== now && m && m.connected) {
-      m.publish(MQTT_PUB, now ? "safe" : "unsafe", { retain: true });
-    }
-    console.log(`[STATE] IsSafe=${now} (${reason})`);
-  };
-  
-  // --- MQTT connect ---
-  let m = null;
-  try {
-    const options = {};
-    if (MQTT_USER && MQTT_PASS) {
-      options.username = MQTT_USER;
-      options.password = MQTT_PASS;
-    }
-  
-    m = mqtt.connect(MQTT_URL, options);
-    m.on("connect", () => {
-      console.log(`[MQTT] connected ${MQTT_URL}, sub ${MQTT_SUB}`);
-      m.subscribe(MQTT_SUB);
-      m.publish(MQTT_PUB, (!isRaining ? "safe" : "unsafe"), { retain: true });
-    });
-    m.on("message", (topic, payload) => {
-      if (topic !== MQTT_SUB) return;
-      const s = String(payload).trim().toLowerCase();
-      const truthy  = ["1","true","on","safe","yes"];
-      const falsy   = ["0","false","off","unsafe","no"];
-      if (truthy.includes(s)) setSafe(true, `mqtt:${s}`);
-      else if (falsy.includes(s)) setSafe(false, `mqtt:${s}`);
-      else console.log(`[MQTT] ignore payload: "${s}"`);
-    });
-    m.on("error", (e) => console.log("[MQTT] error", e.message));
-  } catch (e) {
-    console.log("[MQTT] init failed:", e.message);
-  }
-
 // === State ===
 let connected = false;
 let isRaining = false;
 let serverTransactionId = 0;
+
+// Extra Status
+let health = "ok";                 // ok | degraded | error
+let lastChangeTs = null;           // ISO timestamp
+let lastReason = null;             // z.B. "mqtt:unsafe" / "http"
+const HEARTBEAT_SEC = Number(process.env.HEARTBEAT_SEC || 30);
+const VERSION = "0.4.0";
 
 // === Helpers ===
 const getParamCI = (req, key) => {
@@ -92,6 +58,81 @@ const errBody = (msg, clientTx, num = 1024) => ({
   ErrorMessage: msg
 });
 
+// === State helper ===
+const setSafe = (safe, reason = "manual") => {
+  const prev = !isRaining;
+  isRaining = !Boolean(safe);
+  const now = !isRaining;
+
+  if (prev !== now) {
+    lastChangeTs = new Date().toISOString();
+    lastReason = reason;
+    console.log(`[STATE] IsSafe=${now} (${reason})`);
+    if (m && m.connected) {
+      const payload = now ? "safe" : "unsafe";
+      m.publish(MQTT_PUB, payload, { retain: true });
+      m.publish("alpaca/safetymonitor/last_change", lastChangeTs, { retain: true });
+      m.publish("alpaca/safetymonitor/reason", reason, { retain: true });
+      m.publish("alpaca/safetymonitor/source", reason.split(":")[0] || "manual", { retain: true });
+      m.publish("alpaca/safetymonitor/health", health, { retain: true });
+    }
+  }
+};
+
+// === MQTT connect ===
+let m = null;
+try {
+  const options = {};
+  if (MQTT_USER && MQTT_PASS) {
+    options.username = MQTT_USER;
+    options.password = MQTT_PASS;
+  }
+  // Last Will: wenn Prozess stirbt -> online=false
+  options.will = {
+    topic: "alpaca/safetymonitor/online",
+    payload: "false",
+    retain: true,
+    qos: 1
+  };
+
+  m = mqtt.connect(MQTT_URL, options);
+
+  m.on("connect", () => {
+    console.log(`[MQTT] connected ${MQTT_URL}, sub ${MQTT_SUB}`);
+    m.subscribe(MQTT_SUB);
+
+    // Online/Version initial publizieren
+    m.publish("alpaca/safetymonitor/online", "true", { retain: true });
+    m.publish("alpaca/safetymonitor/version", VERSION, { retain: true });
+
+    // aktuellen Safe-Status rausgeben
+    m.publish(MQTT_PUB, (!isRaining ? "safe" : "unsafe"), { retain: true });
+
+    // Heartbeat + Uptime
+    setInterval(() => {
+      if (!m.connected) return;
+      m.publish("alpaca/safetymonitor/heartbeat", new Date().toISOString(), { retain: false });
+      m.publish("alpaca/safetymonitor/uptime", String(Math.floor(process.uptime())), { retain: false });
+    }, HEARTBEAT_SEC * 1000);
+  });
+
+  m.on("message", (topic, payload) => {
+    if (topic !== MQTT_SUB) return;
+    const s = String(payload).trim().toLowerCase();
+    const truthy  = ["1","true","on","safe","yes"];
+    const falsy   = ["0","false","off","unsafe","no"];
+    if (truthy.includes(s)) setSafe(true, `mqtt:${s}`);
+    else if (falsy.includes(s)) setSafe(false, `mqtt:${s}`);
+    else console.log(`[MQTT] ignore payload: "${s}"`);
+  });
+
+  m.on("close", () => console.log("[MQTT] connection closed"));
+  m.on("error", (e) => console.log("[MQTT] error", e.message));
+
+} catch (e) {
+  console.log("[MQTT] init failed:", e.message);
+}
+
 // === UDP Discovery ===
 const udp = dgram.createSocket({ type: "udp4", reuseAddr: true });
 udp.on("listening", () => {
@@ -116,56 +157,49 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Management Endpoints
-// /management/v1/description – jetzt mit Value-Wrapper
 app.get("/management/v1/description", (req, res) => {
-    const ctid = getParamCI(req, "ClientTransactionID");
-    res.json({
-      Value: {
-        ServerName: "JS Alpaca Sim",
-        Manufacturer: "GalaxyScape",
-        ManufacturerVersion: "0.3.0",
-        Location: "localhost",
-        // Devices-Feld ist optional hier; ConformU liest Hauptangaben aus Value
-      },
-      ClientTransactionID: parseUIntOrZero(ctid),
-      ServerTransactionID: ++serverTransactionId,
-      ErrorNumber: 0,
-      ErrorMessage: ""
-    });
+  const ctid = getParamCI(req, "ClientTransactionID");
+  res.json({
+    Value: {
+      ServerName: "JS Alpaca Sim",
+      Manufacturer: "GalaxyScape",
+      ManufacturerVersion: VERSION,
+      Location: "localhost",
+    },
+    ClientTransactionID: parseUIntOrZero(ctid),
+    ServerTransactionID: ++serverTransactionId,
+    ErrorNumber: 0,
+    ErrorMessage: ""
   });
-  
-// /management/v1/configureddevices – Value = Array von Geräten
+});
 app.get("/management/v1/configureddevices", (req, res) => {
-    const ctid = getParamCI(req, "ClientTransactionID");
-    res.json({
-      Value: [
-        {
-          DeviceName: "SafetyMonitor",
-          DeviceType: "SafetyMonitor",
-          DeviceNumber: 0,
-          UniqueID: "sim-safetymonitor-0"
-        }
-      ],
-      ClientTransactionID: parseUIntOrZero(ctid),
-      ServerTransactionID: ++serverTransactionId,
-      ErrorNumber: 0,
-      ErrorMessage: ""
-    });
+  const ctid = getParamCI(req, "ClientTransactionID");
+  res.json({
+    Value: [
+      {
+        DeviceName: "SafetyMonitor",
+        DeviceType: "SafetyMonitor",
+        DeviceNumber: 0,
+        UniqueID: "sim-safetymonitor-0"
+      }
+    ],
+    ClientTransactionID: parseUIntOrZero(ctid),
+    ServerTransactionID: ++serverTransactionId,
+    ErrorNumber: 0,
+    ErrorMessage: ""
   });
-  
-// Pflicht laut Spec: API Versions
-// /management/apiversions (falls noch nicht so drin – auch hier Alpaca-Envelope)
+});
 app.get("/management/apiversions", (req, res) => {
-    const ctid = getParamCI(req, "ClientTransactionID");
-    res.json({
-      Value: [1],
-      ClientTransactionID: parseUIntOrZero(ctid),
-      ServerTransactionID: ++serverTransactionId,
-      ErrorNumber: 0,
-      ErrorMessage: ""
-    });
+  const ctid = getParamCI(req, "ClientTransactionID");
+  res.json({
+    Value: [1],
+    ClientTransactionID: parseUIntOrZero(ctid),
+    ServerTransactionID: ++serverTransactionId,
+    ErrorNumber: 0,
+    ErrorMessage: ""
   });
-  
+});
+
 // DeviceNumber Validation
 const base = "/api/v1/safetymonitor/:dev";
 app.use(base, (req, res, next) => {
@@ -192,23 +226,22 @@ app.put(`${base}/connected`, (req, res) => {
   const ctid = getParamCI(req, "ClientTransactionID");
   const raw = getParamCI(req, "Connected");
   if (raw === undefined) return res.status(400).json(errBody("Missing parameter: Connected", ctid, 1025));
-
   const s = String(raw).trim().toLowerCase();
   if (s === "true" || s === "1") connected = true;
   else if (s === "false" || s === "0") connected = false;
   else return res.status(400).json(errBody(`Invalid Connected value: ${raw}`, ctid, 1026));
-
   res.json(ok(null, ctid));
 });
 app.get(`${base}/description`, (req, res) => res.json(ok("JS SafetyMonitor", getParamCI(req, "ClientTransactionID"))));
 app.get(`${base}/driverinfo`, (req, res) => res.json(ok("Alpaca SafetyMonitor Simulator (Node.js)", getParamCI(req, "ClientTransactionID"))));
-app.get(`${base}/driverversion`, (req, res) => res.json(ok("0.3", getParamCI(req, "ClientTransactionID"))));
+app.get(`${base}/driverversion`, (req, res) => res.json(ok(VERSION, getParamCI(req, "ClientTransactionID"))));
 app.get(`${base}/name`, (req, res) => res.json(ok("SafetyMonitor-0", getParamCI(req, "ClientTransactionID"))));
 app.get(`${base}/supportedactions`, (req, res) => res.json(ok([], getParamCI(req, "ClientTransactionID"))));
 app.get(`${base}/interfaceversion`, (req, res) => res.json(ok(1, getParamCI(req, "ClientTransactionID"))));
 
 // SafetyMonitor-specific
 app.get(`${base}/issafe`, (req, res) => {
+  console.log(`[NINA] GET /issafe @ ${new Date().toISOString()}`);
   if (!connected) connected = true; // auto-connect fallback
   res.json(ok(!isRaining, getParamCI(req, "ClientTransactionID")));
 });
@@ -220,19 +253,44 @@ app.post("/_simulate/rain", (req, res) => {
   res.json({ ok: true, isRaining });
 });
 
-
-// --- REST Control (nicht Teil der Alpaca-Spec) ---
-// Setze IsSafe direkt:
-//   POST /control/safe?value=true|false|safe|unsafe|1|0
+// --- REST Control ---
 app.post("/control/safe", (req, res) => {
-    const val = (getParamCI(req, "value") ?? "").toString().toLowerCase().trim();
-    const truthy = ["1","true","on","safe","yes"];
-    const falsy  = ["0","false","off","unsafe","no"];
-    if (truthy.includes(val)) { setSafe(true,  "http"); return res.json({ ok: true, isSafe: true  }); }
-    if (falsy.includes(val))  { setSafe(false, "http"); return res.json({ ok: true, isSafe: false }); }
-    return res.status(400).json({ ok: false, error: "value must be true/false/safe/unsafe/1/0" });
+  const val = (getParamCI(req, "value") ?? "").toString().toLowerCase().trim();
+  const truthy = ["1","true","on","safe","yes"];
+  const falsy  = ["0","false","off","unsafe","no"];
+  if (truthy.includes(val)) { setSafe(true,  "http"); return res.json({ ok: true, isSafe: true  }); }
+  if (falsy.includes(val))  { setSafe(false, "http"); return res.json({ ok: true, isSafe: false }); }
+  return res.status(400).json({ ok: false, error: "value must be true/false/safe/unsafe/1/0" });
+});
+
+// Health setter
+app.post("/control/health", (req, res) => {
+  const val = (getParamCI(req, "value") ?? "").toString().toLowerCase().trim();
+  const allowed = ["ok","degraded","error"];
+  if (!allowed.includes(val)) {
+    return res.status(400).json({ ok: false, error: "value must be ok|degraded|error" });
+  }
+  health = val;
+  if (m && m.connected) m.publish("alpaca/safetymonitor/health", health, { retain: true });
+  return res.json({ ok: true, health });
+});
+
+// Status + Healthz
+app.get("/status", (_req, res) => {
+  res.json({
+    online: !!(m && m.connected),
+    version: VERSION,
+    uptime_s: Math.floor(process.uptime()),
+    isSafe: !isRaining,
+    last_change: lastChangeTs,
+    reason: lastReason,
+    health
   });
-  
+});
+app.get("/healthz", (_req, res) => {
+  if (m && m.connected) return res.sendStatus(200);
+  res.sendStatus(503);
+});
 
 // Catch unknown /api routes
 app.use("/api", (req, res) => {
@@ -243,4 +301,3 @@ app.use("/api", (req, res) => {
 app.listen(HTTP_PORT, "0.0.0.0", () => {
   console.log(`Alpaca HTTP on http://0.0.0.0:${HTTP_PORT}`);
 });
-
