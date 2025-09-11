@@ -9,7 +9,7 @@ require("dotenv").config();
 
 // === Config ===
 const HTTP_PORT = Number(process.env.ALPACA_PORT || 11111);
-const DISCOVERY_PORT = Number(process.env.NINA_DISCOVERY_PORT || 32227);
+const DISCOVERY_PORT = Number(process.env.ASCOM_DISCOVERY_PORT || 32227);
 
 const DEFAULT_SAFE = (() => {
   const v = String(process.env.DEFAULT_SAFE ?? "true").toLowerCase();
