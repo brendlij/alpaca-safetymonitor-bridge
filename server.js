@@ -14,7 +14,7 @@ const DISCOVERY_PORT = Number(process.env.ASCOM_DISCOVERY_PORT || 32227);
 const CONFIG_PATH    = process.env.CONFIG_PATH || "./config.json";
 
 const DEFAULT_SAFE = (() => {
-  const v = String(process.env.DEFAULT_SAFE ?? "true").toLowerCase();
+  const v = String(process.env.DEFAULT_SAFE ?? "false").toLowerCase();
   return ["1","true","on","safe","yes"].includes(v);
 })();
 
