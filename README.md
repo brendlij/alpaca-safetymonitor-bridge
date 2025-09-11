@@ -172,7 +172,4 @@ Exposed bridge version: see `state.js` `VERSION` (currently `0.5.0`). Published 
 - Alpaca client cannot connect: confirm `ALPACA_PORT` and firewall rules.
 - Retained commands causing unexpected state: set `IGNORE_RETAINED_SET=true` (default) or clear retained messages on `{base}/safe/set`.
 
-### License
-ISC
-
 
