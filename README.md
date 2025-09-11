@@ -1,6 +1,6 @@
 ## Alpaca SafetyMonitor Bridge
 
-Node.js simulator for an ASCOM Alpaca SafetyMonitor with MQTT bridge, REST control, and UDP discovery. Designed to be used by Alpaca clients (e.g., N.I.N.A., ASCOM Remote), while also exposing the safety state via MQTT for home automation and monitoring.
+Node.js bridge for an ASCOM Alpaca SafetyMonitor with MQTT integration, REST control, and UDP discovery. Designed to be used by Alpaca clients (e.g., N.I.N.A., ASCOM Remote) while also exposing the safety state via MQTT for home automation and monitoring.
 
 ### Features
 - **Alpaca API**: Implements SafetyMonitor v1 endpoints under `/api/v1/safetymonitor/0/...` and management endpoints.
@@ -103,7 +103,7 @@ Topic base: `alpaca/safetymonitor/{DEVICE_NAME}`
 
 Publish (retained where noted):
 - `{base}/online` – `true|false` (LWT, retained)
-- `{base}/version` – simulator version string (retained)
+- `{base}/version` – bridge version string (retained)
 - `{base}/safe/state` – `safe|unsafe` (retained)
 - `{base}/last_change` – ISO timestamp of last state change (retained)
 - `{base}/reason` – last change reason, e.g., `http`, `mqtt:true` (retained)
@@ -134,7 +134,7 @@ Listens on `ASCOM_DISCOVERY_PORT` (default `32227`) and responds to ASCII `alpac
 Response is sent to the sender and broadcast to `255.255.255.255`.
 
 ### Typical Workflows
-1) Start the simulator
+1) Start the bridge
 ```bash
 node server.js
 ```
@@ -159,7 +159,11 @@ mosquitto_pub -h localhost -t "alpaca/safetymonitor/default/safe/set" -m "unsafe
 - Polling `issafe` will update the MQTT client mirror topics.
 
 ### Versioning
-Exposed simulator version: see `state.js` `VERSION` (currently `0.5.0`). Published to MQTT at `{base}/version` and returned by `/driverversion` and `/status`.
+Exposed bridge version: see `state.js` `VERSION` (currently `0.5.0`). Published to MQTT at `{base}/version` and returned by `/driverversion` and `/status`.
+ 
+### TODO
+- Web interface for viewing and toggling safety/health state
+- Multiple state sources with priority/merge (REST, MQTT, physical inputs, rules)
 
 ### Troubleshooting
 - No MQTT messages: verify `MQTT_URL`, broker reachable, and credentials.
