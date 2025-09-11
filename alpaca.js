@@ -51,10 +51,17 @@ function createAlpacaRouter(state) {
     const ctid = state.getParamCI(req, "ClientTransactionID");
     const raw = state.getParamCI(req, "Connected");
     if (raw === undefined) return res.status(400).json(state.errBody("Missing parameter: Connected", ctid, 1025));
+
     const s = String(raw).trim().toLowerCase();
-    if (s === "true" || s === "1") state.setConnected(true);
-    else if (s === "false" || s === "0") state.setConnected(false);
-    else return res.status(400).json(state.errBody(`Invalid Connected value: ${raw}`, ctid, 1026));
+    if (s === "true" || s === "1") {
+      state.setConnected(true);
+      state.setClientConnected(true, "alpaca");   // <— NEW: Client als verbunden markieren
+    } else if (s === "false" || s === "0") {
+      state.setConnected(false);
+      state.setClientConnected(false, "alpaca");  // <— NEW: Client als getrennt markieren
+    } else {
+      return res.status(400).json(state.errBody(`Invalid Connected value: ${raw}`, ctid, 1026));
+    }
     res.json(state.ok(null, ctid));
   });
 
@@ -79,8 +86,10 @@ function createAlpacaRouter(state) {
 
   // SafetyMonitor-specific
   router.get(`${base}/issafe`, (req, res) => {
-    console.log(`[NINA] GET /issafe @ ${new Date().toISOString()}`);
+    // Auto-Connect wie gehabt:
     if (!state.getConnected()) state.setConnected(true);
+    // NEW: jedes Poll zählt als "Client gesehen"
+    state.setClientConnected(true, "alpaca-poll");
     res.json(state.ok(state.getIsSafe(), state.getParamCI(req, "ClientTransactionID")));
   });
 

@@ -1,21 +1,24 @@
 // state.js – zentrale Zustände & Alpaca-Helper
 const EventEmitter = require("events");
 
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 
 class State extends EventEmitter {
-    constructor(opts = {}) {
-      super();
-      const defaultSafe = opts.defaultSafe ?? true; // Standard = safe
-      this.connected = false;
-      this.isSafe = Boolean(defaultSafe);          // neutraler Safety-State
-      this.serverTransactionId = 0;
-  
-      this.health = "ok";
-      this.lastChangeTs = null;
-      this.lastReason = null;
-    }
-  
+  constructor(opts = {}) {
+    super();
+    const defaultSafe = opts.defaultSafe ?? true; // Standard = safe
+    this.connected = false;             // Alpaca Connected-State
+    this.isSafe = Boolean(defaultSafe); // Safety-Flag
+    this.serverTransactionId = 0;
+
+    this.health = "ok";
+    this.lastChangeTs = null;
+    this.lastReason = null;
+
+    // --- Neu: Client Connection Tracking ---
+    this.clientConnected = false;
+    this.lastClientSeen = null;
+  }
 
   // ---- Helpers (Alpaca Spec) ----
   parseUIntOrZero(v) {
@@ -71,6 +74,18 @@ class State extends EventEmitter {
       this.emit("safeChanged", this.isSafe, reason, this.lastChangeTs);
     }
   }
+
+  // ---- Neu: Client Connection Handling ----
+  setClientConnected(val, source = "alpaca") {
+    const prev = this.clientConnected;
+    this.clientConnected = !!val;
+    this.lastClientSeen = new Date().toISOString();
+    if (prev !== this.clientConnected) {
+      this.emit("clientConnectionChanged", this.clientConnected, source, this.lastClientSeen);
+    }
+  }
+  getClientConnected() { return this.clientConnected; }
+  getLastClientSeen() { return this.lastClientSeen; }
 }
 
 module.exports = { State, VERSION };
