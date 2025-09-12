@@ -79,7 +79,7 @@ node server.js
 ```
 
 
-#### Run with Docker CLI
+### Run with Docker CLI
 
 ```bash
 docker run -d --name safemonitor \
@@ -89,7 +89,7 @@ docker run -d --name safemonitor \
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
 
-#### Run with Docker Compose
+### Run with Docker Compose
 
 ```yaml
 services:
