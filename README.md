@@ -25,23 +25,16 @@ It bridges between local sensors (rain, cloud, IR, etc.) or external MQTT inputs
 
 ### Run with Node.js
 
+#### Linux / macOS / Git Bash / WSL
 ```bash
 git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
 cd alpaca-safetymonitor-bridge
 
-# install dependencies
 npm ci
 
-# optional: minimal .env
-cat > .env <<'EOF'
-ALPACA_PORT=11111
-ASCOM_DISCOVERY_PORT=32227
-CONFIG_PATH=./data/config.json
-EOF
+printf "ALPACA_PORT=11111\nASCOM_DISCOVERY_PORT=32227\nCONFIG_PATH=./data/config.json\n" > .env
 
-# start server
-node server.js
-```
+node server.j
 
 Open http://localhost:11111 for the Web UI.
 
@@ -53,6 +46,38 @@ Images are published automatically via GitHub Actions:
 ```bash
 docker pull ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
+#### Windows Powershell
+```bash
+git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
+cd alpaca-safetymonitor-bridge
+
+npm ci
+
+@"
+ALPACA_PORT=11111
+ASCOM_DISCOVERY_PORT=32227
+CONFIG_PATH=./data/config.json
+"@ | Out-File -FilePath .env -Encoding utf8 -NoNewline
+
+node server.js
+```
+
+#### Windows CMD
+```bash
+it clone https://github.com/brendlij/alpaca-safetymonitor-bridge
+cd alpaca-safetymonitor-bridge
+
+npm ci
+
+(
+echo ALPACA_PORT=11111
+echo ASCOM_DISCOVERY_PORT=32227
+echo CONFIG_PATH=./data/config.json
+) > .env
+
+node server.js
+```
+
 
 #### Run with Docker CLI
 
