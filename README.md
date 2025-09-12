@@ -3,9 +3,9 @@
 A lightweight ASCOM Alpaca SafetyMonitor server built with Node.js + Express.
 It bridges between local sensors (rain, cloud, IR, etc.) or external MQTT inputs and Alpaca-enabled astronomy software like N.I.N.A.
 
-👉 Runs as a simple Node.js app or in a Docker container.
-👉 Includes a built-in Web UI for configuration, status, logs, and debugging.
-👉 Publishes MQTT topics so you can integrate with Home Assistant, ESP32, or other IoT sources.
+ Runs as a simple Node.js app or in a Docker container.
+ Includes a built-in Web UI for configuration, status, logs, and debugging.
+ Publishes MQTT topics so you can integrate with Home Assistant, ESP32, or other IoT sources.
 
 ---
 
