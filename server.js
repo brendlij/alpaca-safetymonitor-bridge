@@ -11,10 +11,10 @@ require("dotenv").config();
 // === Boot-Config (nur Start-Infos) ===
 const HTTP_PORT      = Number(process.env.ALPACA_PORT || 11111);
 const DISCOVERY_PORT = Number(process.env.ASCOM_DISCOVERY_PORT || 32227);
-const CONFIG_PATH    = process.env.CONFIG_PATH || "./config.json";
+const CONFIG_PATH    = process.env.CONFIG_PATH || "./data/config.json";
 
 const DEFAULT_SAFE = (() => {
-  const v = String(process.env.DEFAULT_SAFE ?? "false").toLowerCase();
+  const v = String(process.env.DEFAULT_SAFE != null ? process.env.DEFAULT_SAFE : "false").toLowerCase();
   return ["1","true","on","safe","yes"].includes(v);
 })();
 
@@ -27,6 +27,14 @@ app.use(express.json());
 
 // Static frontend (served at /)
 app.use(express.static("public"));
+
+
+// ensure config dir exists
+const path = require("path");
+const configDir = path.dirname(CONFIG_PATH);
+if (!fs.existsSync(configDir)) {
+  fs.mkdirSync(configDir, { recursive: true });
+}
 
 // === Runtime Config (UI-gesteuert) ===
 let runtimeConfig = {
