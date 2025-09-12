@@ -136,8 +136,9 @@ docker compose up -d
 Minimal example `.env`:
 
 ```env
-DEVICE_NAME=observatory
-MQTT_URL=mqtt://localhost:1883
+ALPACA_PORT=11111
+ASCOM_DISCOVERY_PORT=32227
+CONFIG_PATH=./data/config.json
 ```
 
 ### Runtime `config.json` (managed via Web UI)
