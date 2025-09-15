@@ -34,10 +34,12 @@ npm ci
 
 printf "ALPACA_PORT=11111\nASCOM_DISCOVERY_PORT=32227\nCONFIG_PATH=./data/config.json\n" > .env
 
-node server.j
-
-Open http://localhost:11111 for the Web UI.
-
+node server.js
+```
+Web UI accesable at:
+```bash
+http://localhost:11111
+```
 ### Run with Docker
 
 #### Prebuilt images (GHCR)
