@@ -143,7 +143,7 @@ docker compose up -d
 |------------------------|-------------------------|---------------------------------------|
 | `ALPACA_PORT`          | `11111`                 | HTTP port (UI + Alpaca API)           |
 | `ASCOM_DISCOVERY_PORT` | `32227`                 | UDP discovery port                    |
-| `CONFIG_PATH`          | `./config.json`         | Path to runtime config file           |
+| `CONFIG_PATH`          | `./data/config.json`    | Path to runtime config file           |
 | `DEFAULT_SAFE`         | `true`                  | Initial safe/unsafe state             |
 | `DEVICE_NAME`          | `default`               | Device name used in MQTT topics       |
 | `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker URL                       |
