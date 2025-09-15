@@ -79,9 +79,9 @@ node server.js
 ```
 
 
-### Run with Docker CLI
+## Run with Docker CLI
 
-# Linux / macOS (bash/zsh)
+### Linux / macOS (bash/zsh)
 ```bash
 docker run -d --name safemonitor \
   -p 11111:11111/tcp \
@@ -89,7 +89,7 @@ docker run -d --name safemonitor \
   -v "$(pwd)/data:/app/data" \
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
-# Windows CMD
+### Windows CMD
 ```bash
 docker run -d --name safemonitor ^
   -p 11111:11111/tcp ^
@@ -97,7 +97,7 @@ docker run -d --name safemonitor ^
   -v "%cd%\data:/app/data" ^
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
-# Windows PowerShell
+### Windows PowerShell
 ```bash
 docker run -d --name safemonitor `
   -p 11111:11111/tcp `
@@ -106,7 +106,7 @@ docker run -d --name safemonitor `
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
 
-### Run with Docker Compose
+## Run with Docker Compose
 
 ```yaml
 services:
