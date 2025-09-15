@@ -42,7 +42,7 @@ Open http://localhost:11111 for the Web UI.
 
 #### Prebuilt images (GHCR)
 Images are published automatically via GitHub Actions:
-
+```
 ```bash
 docker pull ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
@@ -81,11 +81,28 @@ node server.js
 
 ### Run with Docker CLI
 
+# Linux / macOS (bash/zsh)
 ```bash
 docker run -d --name safemonitor \
   -p 11111:11111/tcp \
   -p 32227:32227/udp \
   -v "$(pwd)/data:/app/data" \
+  ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
+```
+# Windows CMD
+```bash
+docker run -d --name safemonitor ^
+  -p 11111:11111/tcp ^
+  -p 32227:32227/udp ^
+  -v "%cd%\data:/app/data" ^
+  ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
+```
+# Windows PowerShell
+```bash
+docker run -d --name safemonitor `
+  -p 11111:11111/tcp `
+  -p 32227:32227/udp `
+  -v "${PWD}\data:/app/data" `
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
 
