@@ -25,37 +25,65 @@ It bridges between local sensors (rain, cloud, IR, etc.) or external MQTT inputs
 
 ### Run with Node.js
 
+#### Linux / macOS / Git Bash / WSL
 ```bash
 git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
 cd alpaca-safetymonitor-bridge
 
-# install dependencies
 npm ci
 
-# optional: minimal .env
-cat > .env <<'EOF'
-ALPACA_PORT=11111
-ASCOM_DISCOVERY_PORT=32227
-CONFIG_PATH=./data/config.json
-EOF
+printf "ALPACA_PORT=11111\nASCOM_DISCOVERY_PORT=32227\nCONFIG_PATH=./data/config.json\n" > .env
 
-# start server
 node server.js
 ```
-
-Open http://localhost:11111 for the Web UI.
-
+Web UI accesable at:
+```bash
+http://localhost:11111
+```
 ### Run with Docker
 
 #### Prebuilt images (GHCR)
 Images are published automatically via GitHub Actions:
-
+```
 ```bash
 docker pull ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
+#### Windows Powershell
+```bash
+git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
+cd alpaca-safetymonitor-bridge
 
-#### Run with Docker CLI
+npm ci
 
+@"
+ALPACA_PORT=11111
+ASCOM_DISCOVERY_PORT=32227
+CONFIG_PATH=./data/config.json
+"@ | Out-File -FilePath .env -Encoding utf8 -NoNewline
+
+node server.js
+```
+
+#### Windows CMD
+```bash
+it clone https://github.com/brendlij/alpaca-safetymonitor-bridge
+cd alpaca-safetymonitor-bridge
+
+npm ci
+
+(
+echo ALPACA_PORT=11111
+echo ASCOM_DISCOVERY_PORT=32227
+echo CONFIG_PATH=./data/config.json
+) > .env
+
+node server.js
+```
+
+
+## Run with Docker CLI
+
+### Linux / macOS (bash/zsh)
 ```bash
 docker run -d --name safemonitor \
   -p 11111:11111/tcp \
@@ -63,8 +91,24 @@ docker run -d --name safemonitor \
   -v "$(pwd)/data:/app/data" \
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
+### Windows CMD
+```bash
+docker run -d --name safemonitor ^
+  -p 11111:11111/tcp ^
+  -p 32227:32227/udp ^
+  -v "%cd%\data:/app/data" ^
+  ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
+```
+### Windows PowerShell
+```bash
+docker run -d --name safemonitor `
+  -p 11111:11111/tcp `
+  -p 32227:32227/udp `
+  -v "${PWD}\data:/app/data" `
+  ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
+```
 
-#### Run with Docker Compose
+## Run with Docker Compose
 
 ```yaml
 services:
@@ -99,7 +143,7 @@ docker compose up -d
 |------------------------|-------------------------|---------------------------------------|
 | `ALPACA_PORT`          | `11111`                 | HTTP port (UI + Alpaca API)           |
 | `ASCOM_DISCOVERY_PORT` | `32227`                 | UDP discovery port                    |
-| `CONFIG_PATH`          | `./config.json`         | Path to runtime config file           |
+| `CONFIG_PATH`          | `./data/config.json`    | Path to runtime config file           |
 | `DEFAULT_SAFE`         | `true`                  | Initial safe/unsafe state             |
 | `DEVICE_NAME`          | `default`               | Device name used in MQTT topics       |
 | `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker URL                       |
@@ -111,8 +155,9 @@ docker compose up -d
 Minimal example `.env`:
 
 ```env
-DEVICE_NAME=observatory
-MQTT_URL=mqtt://localhost:1883
+ALPACA_PORT=11111
+ASCOM_DISCOVERY_PORT=32227
+CONFIG_PATH=./data/config.json
 ```
 
 ### Runtime `config.json` (managed via Web UI)
