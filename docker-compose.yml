@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  alpaca-safetymonitor:
+    build: .
+    ports:
+      - "${WEB_PORT:-8085}:${WEB_PORT:-8085}"
+      - "${ASCOM_DISCOVERY_PORT:-32227}:${ASCOM_DISCOVERY_PORT:-32227}/udp"
+    volumes:
+      # Mount config directory with proper permissions
+      - ./data:/app/data:rw
+      # Optional: separate logs directory
+      - ./logs:/app/logs:rw
+    environment:
+      - NODE_ENV=production
+      - WEB_PORT=${WEB_PORT:-8085}
+      - ASCOM_DISCOVERY_PORT=${ASCOM_DISCOVERY_PORT:-32227}
+      - CONFIG_PATH=/app/data/config.json
+      # Default values - can be overridden by config.json
+      - DEVICE_NAME=default
+      - MQTT_URL=mqtt://localhost:1883
+      - MQTT_USER=
+      - MQTT_PASS=
+      - DEFAULT_SAFE=false
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD", "wget", "-qO-", "http://127.0.0.1:${WEB_PORT:-8085}/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

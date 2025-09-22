@@ -1,109 +1,160 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Alpaca Safety Monitor Bridge</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="./app.css" rel="stylesheet" />
-</head>
-<body>
-  <header class="header">
-    <div class="brand">
-      <span class="logo">🔭</span>
-      <div>
-        <h1>Alpaca Safety Monitor Bridge</h1>
-        <p class="muted">Alpaca SafetyMonitor — Config & Status</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Alpaca Safety Monitor Bridge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="./app.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="brand">
+        <span class="logo">🔭</span>
+        <div>
+          <h1>Alpaca Safety Monitor Bridge</h1>
+          <p class="muted">Alpaca SafetyMonitor — Config & Status</p>
+        </div>
       </div>
-    </div>
-    <button id="refreshBtn" class="btn">Refresh</button>
-  </header>
+      <button id="refreshBtn" class="btn">Refresh</button>
+    </header>
 
-  <main class="container">
-    <section class="card">
-      <h2>Status</h2>
-      <div id="statusGrid" class="grid grid-2">
-        <div><span class="label">Version</span><span id="stVersion" class="value">—</span></div>
-        <div><span class="label">Online (MQTT)</span><span id="stOnline" class="pill pill-grey">—</span></div>
-        <div><span class="label">Uptime</span><span id="stUptime" class="value">—</span></div>
-        <div><span class="label">Alpaca Client</span><span id="stAlpacaClient" class="pill pill-grey">—</span></div>
-        <div><span class="label">IsSafe</span><span id="stIsSafe" class="pill pill-grey">—</span></div>
-        <div><span class="label">Health</span><span id="stHealth" class="pill pill-grey">—</span></div>
-        <div class="grid-span"><span class="label">Reason</span><span id="stReason" class="value">—</span></div>
-        <div class="grid-span"><span class="label">Topic Base</span><span id="stTopicBase" class="value mono">—</span></div>
-      </div>
-      <div class="row mt">
-        <button id="btnMarkSafe" class="btn btn-safe">Set SAFE</button>
-        <button id="btnMarkUnsafe" class="btn btn-unsafe">Set UNSAFE</button>
-        <select id="healthSelect" class="input">
-          <option value="ok">health: ok</option>
-          <option value="degraded">health: degraded</option>
-          <option value="error">health: error</option>
-        </select>
-        <button id="btnHealth" class="btn">Apply</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Settings</h2>
-      <form id="cfgForm" class="form">
-        <div class="field">
-          <label>Device Name</label>
-          <input id="deviceName" class="input" placeholder="observatory" />
-          <small class="muted">Used in Alpaca names and MQTT topic base.</small>
-        </div>
-    
-        <div class="field">
-          <label>Topic Base</label>
-          <input id="topicBase" class="input mono" placeholder="alpaca/safetymonitor/observatory" />
-        </div>
-    
-        <div class="field">
-          <label>MQTT URL</label>
-          <input id="mqttUrl" class="input mono" placeholder="mqtt://localhost:1883" />
-        </div>
-    
-        <div class="grid grid-2">
-          <div class="field">
-            <label>MQTT Username (optional)</label>
-            <input id="mqttUser" class="input" autocomplete="username" />
+    <main class="container">
+      <section class="card">
+        <h2>Status</h2>
+        <div id="statusGrid" class="grid grid-2">
+          <div>
+            <span class="label">Version</span
+            ><span id="stVersion" class="value">—</span>
           </div>
-          <div class="field">
-            <label>MQTT Password (optional)</label>
-            <input id="mqttPass" type="password" class="input" autocomplete="current-password" />
+          <div>
+            <span class="label">Online (MQTT)</span
+            ><span id="stOnline" class="pill pill-grey">—</span>
+          </div>
+          <div>
+            <span class="label">Uptime</span
+            ><span id="stUptime" class="value">—</span>
+          </div>
+          <div>
+            <span class="label">Alpaca Client</span
+            ><span id="stAlpacaClient" class="pill pill-grey">—</span>
+          </div>
+          <div>
+            <span class="label">IsSafe</span
+            ><span id="stIsSafe" class="pill pill-grey">—</span>
+          </div>
+          <div>
+            <span class="label">Health</span
+            ><span id="stHealth" class="pill pill-grey">—</span>
+          </div>
+          <div class="grid-span">
+            <span class="label">Reason</span
+            ><span id="stReason" class="value">—</span>
+          </div>
+          <div class="grid-span">
+            <span class="label">Topic Base</span
+            ><span id="stTopicBase" class="value mono">—</span>
           </div>
         </div>
-    
-        <div class="row">
-          <label class="switch">
-            <input type="checkbox" id="enableMqtt">
-            <span class="slider"></span>
-            <span class="switch-label">Enable MQTT</span>
-          </label>
-          <label class="switch">
-            <input type="checkbox" id="enableRestControl">
-            <span class="slider"></span>
-            <span class="switch-label">Enable REST Control</span>
-          </label>
-        </div>
-    
         <div class="row mt">
-          <button class="btn" id="saveBtn" type="submit">Save Settings</button>
-          <span id="saveMsg" class="muted"></span>
+          <button id="btnMarkSafe" class="btn btn-safe">Set SAFE</button>
+          <button id="btnMarkUnsafe" class="btn btn-unsafe">Set UNSAFE</button>
+          <select id="healthSelect" class="input">
+            <option value="ok">health: ok</option>
+            <option value="degraded">health: degraded</option>
+            <option value="error">health: error</option>
+          </select>
+          <button id="btnHealth" class="btn">Apply</button>
         </div>
-      </form>
-    </section>
-    
+      </section>
 
-    <section class="card">
-      <h2>Log</h2>
-      <div id="logBox" class="log-box"></div>
-    </section>
-  </main>
+      <section class="card">
+        <h2>Settings</h2>
+        <form id="cfgForm" class="form">
+          <div class="field">
+            <label>Device Name</label>
+            <input id="deviceName" class="input" placeholder="observatory" />
+            <small class="muted"
+              >Used in Alpaca names and MQTT topic base.</small
+            >
+          </div>
 
-  <footer class="footer">
-    Julian Brendlin © <span id="year"></span> • Built for Alpaca SafetyMonitor
-  </footer>
+          <div class="field">
+            <label>Topic Base</label>
+            <input
+              id="topicBase"
+              class="input mono"
+              placeholder="alpaca/safetymonitor/observatory"
+            />
+          </div>
 
-  <script src="./app.js"></script>
-</body>
+          <div class="field">
+            <label>MQTT URL</label>
+            <input
+              id="mqttUrl"
+              class="input mono"
+              placeholder="mqtt://localhost:1883"
+            />
+          </div>
+
+          <div class="grid grid-2">
+            <div class="field">
+              <label>MQTT Username (optional)</label>
+              <input id="mqttUser" class="input" autocomplete="username" />
+            </div>
+            <div class="field">
+              <label>MQTT Password (optional)</label>
+              <input
+                id="mqttPass"
+                type="password"
+                class="input"
+                autocomplete="current-password"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <label class="switch">
+              <input type="checkbox" id="enableMqtt" />
+              <span class="slider"></span>
+              <span class="switch-label">Enable MQTT</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="enableRestControl" />
+              <span class="slider"></span>
+              <span class="switch-label">Enable REST Control</span>
+            </label>
+          </div>
+
+          <div class="row mt">
+            <button class="btn" id="saveBtn" type="submit">
+              Save Settings
+            </button>
+            <span id="saveMsg" class="muted"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Application Log</h2>
+        <div class="log-controls">
+          <button id="loadLogsBtn" class="btn">Load Recent Logs</button>
+          <button id="clearLogsBtn" class="btn">Clear Display</button>
+          <select id="logSourceSelect" class="input" style="width: auto">
+            <option value="buffer">Live Buffer</option>
+            <option value="file">From Log File</option>
+          </select>
+          <span class="muted" style="font-size: 12px">
+            <span id="logCount">0</span> entries
+          </span>
+        </div>
+        <div id="logBox" class="log-box"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Julian Brendlin © <span id="year"></span> • Built for Alpaca SafetyMonitor
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
 </html>

@@ -3,9 +3,10 @@
 A lightweight ASCOM Alpaca SafetyMonitor server built with Node.js + Express.
 It bridges between local sensors (rain, cloud, IR, etc.) or external MQTT inputs and Alpaca-enabled astronomy software like N.I.N.A.
 
- Runs as a simple Node.js app or in a Docker container.
- Includes a built-in Web UI for configuration, status, logs, and debugging.
- Publishes MQTT topics so you can integrate with Home Assistant, ESP32, or other IoT sources.
+✅ Runs as a simple Node.js app or in a Docker container.  
+✅ Includes a built-in Web UI for configuration, status, logs, and debugging.  
+✅ Publishes MQTT topics so you can integrate with Home Assistant, ESP32, or other IoT sources.  
+✅ Proper Docker volume handling with persistent configuration.
 
 ---
 
@@ -26,6 +27,7 @@ It bridges between local sensors (rain, cloud, IR, etc.) or external MQTT inputs
 ### Run with Node.js
 
 #### Linux / macOS / Git Bash / WSL
+
 ```bash
 git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
 cd alpaca-safetymonitor-bridge
@@ -36,19 +38,57 @@ printf "ALPACA_PORT=11111\nASCOM_DISCOVERY_PORT=32227\nCONFIG_PATH=./data/config
 
 node server.js
 ```
+
 Web UI accesable at:
+
 ```bash
 http://localhost:11111
 ```
-### Run with Docker
 
-#### Prebuilt images (GHCR)
-Images are published automatically via GitHub Actions:
+### Run with Docker (Recommended)
+
+#### Option 1: Docker Compose (Easiest)
+
+```bash
+git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
+cd alpaca-safetymonitor-bridge
+
+# Setup data directories (Windows)
+setup.bat
+
+# Or for Linux/Mac
+chmod +x setup.sh
+./setup.sh
+
+# Start the service
+docker-compose up -d
 ```
+
+#### Option 2: Prebuilt images (GHCR)
+
+Images are published automatically via GitHub Actions:
+
 ```bash
 docker pull ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
+
+# Create data directory first
+mkdir -p ./data
+
+# Run with proper volume mounting
+docker run -d \
+  --name alpaca-safetymonitor \
+  -p 8080:8080 \
+  -p 32227:32227/udp \
+  -v $(pwd)/data:/app/data:rw \
+  -e WEB_PORT=8080 \
+  -e DEVICE_NAME=my-safety-monitor \
+  -e MQTT_URL=mqtt://your-mqtt-broker:1883 \
+  --restart unless-stopped \
+  ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
+
 #### Windows Powershell
+
 ```bash
 git clone https://github.com/brendlij/alpaca-safetymonitor-bridge
 cd alpaca-safetymonitor-bridge
@@ -64,7 +104,53 @@ CONFIG_PATH=./data/config.json
 node server.js
 ```
 
+---
+
+## ⚙️ Configuration
+
+The web interface port and other settings can be configured via environment variables:
+
+### Environment Variables
+
+| Variable               | Default                 | Description                               |
+| ---------------------- | ----------------------- | ----------------------------------------- |
+| `WEB_PORT`             | `8085`                  | Port for the web interface and Alpaca API |
+| `ASCOM_DISCOVERY_PORT` | `32227`                 | UDP port for ASCOM device discovery       |
+| `DEVICE_NAME`          | `default`               | Name of the safety monitor device         |
+| `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker connection URL                |
+| `MQTT_USER`            | _(empty)_               | MQTT username (optional)                  |
+| `MQTT_PASS`            | _(empty)_               | MQTT password (optional)                  |
+| `DEFAULT_SAFE`         | `false`                 | Default safety state on startup           |
+| `CONFIG_PATH`          | `/app/data/config.json` | Path to configuration file                |
+
+### Example Configurations
+
+**Custom Port (11111 for ASCOM compatibility):**
+
+```bash
+# Docker Compose
+echo "WEB_PORT=11111" > .env
+docker-compose up -d
+
+# Direct Docker
+docker run -d -p 11111:11111 -e WEB_PORT=11111 ghcr.io/brendlij/alpaca-safetymonitor-bridge
+```
+
+**Custom MQTT Broker:**
+
+```bash
+docker run -d \
+  -p 11111:11111 \
+  -e MQTT_URL=mqtt://192.168.1.100:1883 \
+  -e MQTT_USER=myuser \
+  -e MQTT_PASS=mypassword \
+  ghcr.io/brendlij/alpaca-safetymonitor-bridge
+```
+
+---
+
 #### Windows CMD
+
 ```bash
 it clone https://github.com/brendlij/alpaca-safetymonitor-bridge
 cd alpaca-safetymonitor-bridge
@@ -80,10 +166,10 @@ echo CONFIG_PATH=./data/config.json
 node server.js
 ```
 
-
 ## Run with Docker CLI
 
 ### Linux / macOS (bash/zsh)
+
 ```bash
 docker run -d --name safemonitor \
   -p 11111:11111/tcp \
@@ -91,7 +177,9 @@ docker run -d --name safemonitor \
   -v "$(pwd)/data:/app/data" \
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
+
 ### Windows CMD
+
 ```bash
 docker run -d --name safemonitor ^
   -p 11111:11111/tcp ^
@@ -99,7 +187,9 @@ docker run -d --name safemonitor ^
   -v "%cd%\data:/app/data" ^
   ghcr.io/brendlij/alpaca-safetymonitor-bridge:latest
 ```
+
 ### Windows PowerShell
+
 ```bash
 docker run -d --name safemonitor `
   -p 11111:11111/tcp `
@@ -139,18 +229,18 @@ docker compose up -d
 
 ### .env (Node) or environment (Docker)
 
-| Variable               | Default                 | Purpose                               |
-|------------------------|-------------------------|---------------------------------------|
-| `ALPACA_PORT`          | `11111`                 | HTTP port (UI + Alpaca API)           |
-| `ASCOM_DISCOVERY_PORT` | `32227`                 | UDP discovery port                    |
-| `CONFIG_PATH`          | `./data/config.json`    | Path to runtime config file           |
-| `DEFAULT_SAFE`         | `true`                  | Initial safe/unsafe state             |
-| `DEVICE_NAME`          | `default`               | Device name used in MQTT topics       |
-| `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker URL                       |
-| `MQTT_USER`            |                         | MQTT username (optional)              |
-| `MQTT_PASS`            |                         | MQTT password (optional)              |
-| `IGNORE_RETAINED_SET`  | `true`                  | Ignore retained MQTT set commands     |
-| `HEARTBEAT_SEC`        | `30`                    | MQTT heartbeat interval (seconds)     |
+| Variable               | Default                 | Purpose                           |
+| ---------------------- | ----------------------- | --------------------------------- |
+| `ALPACA_PORT`          | `11111`                 | HTTP port (UI + Alpaca API)       |
+| `ASCOM_DISCOVERY_PORT` | `32227`                 | UDP discovery port                |
+| `CONFIG_PATH`          | `./data/config.json`    | Path to runtime config file       |
+| `DEFAULT_SAFE`         | `true`                  | Initial safe/unsafe state         |
+| `DEVICE_NAME`          | `default`               | Device name used in MQTT topics   |
+| `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker URL                   |
+| `MQTT_USER`            |                         | MQTT username (optional)          |
+| `MQTT_PASS`            |                         | MQTT password (optional)          |
+| `IGNORE_RETAINED_SET`  | `true`                  | Ignore retained MQTT set commands |
+| `HEARTBEAT_SEC`        | `30`                    | MQTT heartbeat interval (seconds) |
 
 Minimal example `.env`:
 
